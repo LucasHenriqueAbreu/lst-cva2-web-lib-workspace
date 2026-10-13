@@ -1,0 +1,280 @@
+<z-content
+  [navigationConfig]="navigationConfig"
+  [activeAnchor]="activeAnchor()"
+  scrollSpy
+  (scrollSpyChange)="activeAnchor.set($event)"
+>
+  <z-doc-heading
+    title="Theming"
+    description="Design tokens in OKLCH, mapped to Tailwind utilities. One stylesheet controls every component."
+    scrollSpyItem="overview"
+    id="overview"
+  ></z-doc-heading>
+
+  <div class="typeset typeset-docs text-muted-foreground">
+    <p>
+      A ZardUI theme is a set of CSS variables in
+      <code>src/styles.css</code>
+      . Each one is mapped to a Tailwind color through
+      <code>&#64;theme inline</code>
+      , so
+      <code>--primary</code>
+      becomes
+      <code>bg-primary</code>
+      . Redefining the variable under
+      <code>.dark</code>
+      — or under any container class — retints every component underneath it, with no rebuild and no per-component
+      configuration.
+    </p>
+
+    <p>There are three ways to get a theme:</p>
+
+    <ul>
+      <li>
+        <strong class="text-foreground font-medium">Run the CLI.</strong>
+        <code>zard-cli init</code>
+        writes the whole file and asks which base color you want — see
+        <a class="underline underline-offset-4" routerLink="/docs/installation">Installation</a>
+        .
+      </li>
+      <li>
+        <strong class="text-foreground font-medium">Copy the CSS.</strong>
+        The complete stylesheet is in
+        <a class="underline underline-offset-4" href="#how-it-works">How it works</a>
+        , explained line by line.
+      </li>
+      <li>
+        <strong class="text-foreground font-medium">Build your own.</strong>
+        The
+        <a class="underline underline-offset-4" routerLink="/themes">theme generator</a>
+        gives you every token with a live preview and exports finished CSS.
+      </li>
+    </ul>
+  </div>
+
+  <!-- How it works -->
+  <section class="flex flex-col gap-6 sm:gap-8" scrollSpyItem="how-it-works" id="how-it-works">
+    <div class="typeset typeset-docs text-muted-foreground">
+      <h2 class="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20">
+        How it works
+      </h2>
+      <p>
+        This is the whole file, exactly as
+        <code>zard-cli init</code>
+        writes it for the Neutral base color. Paste it into
+        <code>src/styles.css</code>
+        and every component is themed.
+      </p>
+    </div>
+
+    <z-code-display [data]="cssVarsV4Block" />
+
+    <div class="typeset typeset-docs text-muted-foreground">
+      <h3 class="text-base font-semibold sm:text-lg">Line by line</h3>
+      <p>
+        Nine parts, in the order they appear above. Each one earns its place — the last line of every entry says what
+        breaks without it.
+      </p>
+    </div>
+
+    <z-theme-anatomy />
+
+    <z-alert
+      zIcon="lucideCircleQuestionMark"
+      zRole="status"
+      zTitle="Why OKLCH and not HSL or HEX?"
+      [zDescription]="oklchSummary"
+    />
+  </section>
+
+  <!-- Convention -->
+  <section class="flex flex-col gap-6 sm:gap-8" scrollSpyItem="convention" id="convention">
+    <div class="typeset typeset-docs text-muted-foreground">
+      <h2 class="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20">Convention</h2>
+      <p>
+        Tokens come in pairs: a surface and the text that sits on it. The
+        <code>background</code>
+        suffix is dropped, so
+        <code>--primary</code>
+        is the surface and
+        <code>--primary-foreground</code>
+        is the text on top of it.
+      </p>
+      <!-- Inside the prose: the code block brings its own sizing. -->
+      <z-code-block class="not-typeset" [data]="conventionExample" />
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <h3 class="text-base font-semibold sm:text-lg">Every pair, rendered</h3>
+      <p class="text-muted-foreground text-sm">
+        These are real utilities on real elements — the contrast you see is the contrast you get.
+      </p>
+      <z-convention-preview />
+    </div>
+
+    <div class="typeset typeset-docs text-muted-foreground flex flex-col gap-3">
+      <h3 class="text-base font-semibold sm:text-lg">Tokens or raw utility classes?</h3>
+      <p>
+        Prefer tokens. They react to
+        <code>.dark</code>
+        and to scoped overrides on their own:
+      </p>
+      <z-code-block class="not-typeset" [data]="cssVarsIntroBlock" />
+      <p>Raw Tailwind colors work too, but you own every dark-mode variant by hand and lose scoped theming entirely:</p>
+      <z-code-block class="not-typeset" [data]="utilityClassesIntroBlock" />
+    </div>
+  </section>
+
+  <!-- Token reference -->
+  <section class="flex flex-col gap-6 sm:gap-8" scrollSpyItem="token-reference" id="token-reference">
+    <div class="typeset typeset-docs text-muted-foreground">
+      <h2 class="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20">
+        Token reference
+      </h2>
+      <p>
+        All {{ tokenCount }} tokens, with their Neutral values in both modes. Expand
+        <em>Used by</em>
+        under a token to see which components read it. The list comes from a scan of the library source, so a token
+        marked
+        <em>not used yet</em>
+        really is unused today.
+      </p>
+    </div>
+
+    <z-token-table />
+  </section>
+
+  <!-- Radius & scale -->
+  <section class="flex flex-col gap-6 sm:gap-8" scrollSpyItem="radius" id="radius">
+    <div class="typeset typeset-docs text-muted-foreground">
+      <h2 class="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20">
+        Radius &amp; scale
+      </h2>
+      <p>
+        <code>--radius</code>
+        is the single knob for corner rounding. The four utilities below are derived from it in
+        <code>&#64;theme inline</code>
+        , so changing one value reshapes every component.
+      </p>
+    </div>
+
+    <z-radius-preview />
+  </section>
+
+  <!-- Base colors -->
+  <section class="flex flex-col gap-6 sm:gap-8" scrollSpyItem="base-colors" id="base-colors">
+    <div class="typeset typeset-docs text-muted-foreground">
+      <h2 class="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20">
+        Base colors
+      </h2>
+      <p>
+        Five neutral scales ship with the CLI. They differ only in the hue mixed into the greys — pick one, then adjust
+        <code>--primary</code>
+        to taste.
+      </p>
+    </div>
+
+    <z-base-color-preview [codeBlocks]="baseColorBlocks" />
+  </section>
+
+  <!-- Dark mode -->
+  <section class="flex flex-col gap-6 sm:gap-8" scrollSpyItem="dark-mode" id="dark-mode">
+    <div class="typeset typeset-docs text-muted-foreground">
+      <h2 class="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20">Dark mode</h2>
+      <p>
+        Dark mode is the
+        <code>.dark</code>
+        block and nothing else. No component knows which mode is active: they all read the same token names, and the
+        values change underneath them.
+      </p>
+      <p>
+        Two pieces make it work —
+        <code>&#64;custom-variant dark (&amp;:is(.dark *))</code>
+        binds the
+        <code>dark:</code>
+        variant to a class instead of the OS setting, and something has to put that class on
+        <code>&lt;html&gt;</code>
+        . The
+        <code>ZardDarkMode</code>
+        service does that, and persists the choice.
+      </p>
+      <p>
+        <a class="underline underline-offset-4" routerLink="/docs/dark-mode">Set up dark mode →</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- Customizing -->
+  <section class="flex flex-col gap-6 sm:gap-8" scrollSpyItem="customizing" id="customizing">
+    <div class="typeset typeset-docs text-muted-foreground">
+      <h2 class="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20">
+        Customizing
+      </h2>
+      <p>
+        Three things you are likely to want: a new color, a token overridden for one part of the app, and a theme that
+        follows a route.
+      </p>
+    </div>
+
+    <div class="typeset typeset-docs text-muted-foreground flex flex-col gap-3">
+      <h3 class="text-base font-semibold sm:text-lg">Adding a new color</h3>
+      <p>
+        Declare the raw value, override it under
+        <code>.dark</code>
+        , then map it — the same three steps every built-in token goes through.
+      </p>
+      @for (block of addingColorsExample; track $index) {
+        <z-code-block class="not-typeset" [data]="block" />
+      }
+    </div>
+
+    <div class="typeset typeset-docs text-muted-foreground flex flex-col gap-3">
+      <h3 class="text-base font-semibold sm:text-lg">Overriding tokens in one scope</h3>
+      <p>
+        Because
+        <code>&#64;theme inline</code>
+        emits
+        <code>var(--primary)</code>
+        instead of a baked-in color, any container can redefine a token for its subtree.
+      </p>
+      @for (block of scopedTokensExample; track $index) {
+        <z-code-block class="not-typeset" [data]="block" />
+      }
+    </div>
+
+    <div class="typeset typeset-docs text-muted-foreground flex flex-col gap-3">
+      <h3 class="text-base font-semibold sm:text-lg">A theme per route</h3>
+      <p>Put the override class on a layout component's host and everything rendered through its outlet inherits it.</p>
+      @for (block of routeThemeExample; track $index) {
+        <z-code-block class="not-typeset" [data]="block" />
+      }
+    </div>
+
+    <div class="typeset typeset-docs text-muted-foreground flex flex-col gap-3">
+      <h3 class="text-base font-semibold sm:text-lg">Other color formats</h3>
+      <p>
+        The raw tokens hold plain CSS colors, so RGB, HSL and HEX all work. Keep the
+        <code>&#64;theme inline</code>
+        mapping as it is.
+      </p>
+      <z-code-block class="not-typeset" [data]="otherColorFormatsBlock" />
+      <p>
+        Need the values? The
+        <a class="underline underline-offset-4" routerLink="/colors">colors page</a>
+        lists the full Tailwind palette in OKLCH, HEX, RGB and HSL.
+      </p>
+    </div>
+  </section>
+
+  <!-- Troubleshooting -->
+  <section class="flex flex-col gap-6 sm:gap-8" scrollSpyItem="troubleshooting" id="troubleshooting">
+    <div class="typeset typeset-docs text-muted-foreground">
+      <h2 class="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20">
+        Troubleshooting
+      </h2>
+      <p>Every entry below is a real failure mode of the setup on this page, with the line that causes it.</p>
+    </div>
+
+    <z-troubleshooting-list />
+  </section>
+</z-content>

@@ -1,0 +1,53 @@
+<div class="bg-code text-code-foreground flex min-h-svh overflow-hidden rounded-lg border">
+  <!-- File tree. Composed out of sidebar + collapsible, the same primitives shadcn's block viewer
+       uses, so it inherits the row states (active, hover, focus) instead of restating them. -->
+  <z-sidebar-provider class="min-h-full! w-72 shrink-0 flex-col">
+    <z-sidebar zCollapsible="none" class="w-full flex-1 border-r bg-transparent">
+      <div z-sidebar-group class="p-0">
+        <div z-sidebar-group-label class="h-12 rounded-none border-b px-4 text-sm font-medium">Files</div>
+
+        <div z-sidebar-group-content>
+          <ul z-sidebar-menu class="gap-0.5 p-2">
+            <z-block-file-tree
+              [nodes]="fileTree()"
+              [selectedPath]="selectedFile()?.path ?? null"
+              (fileSelect)="selectFile($event)"
+            />
+          </ul>
+        </div>
+      </div>
+    </z-sidebar>
+  </z-sidebar-provider>
+
+  <div class="flex min-w-0 flex-1 flex-col">
+    @if (selectedFile(); as file) {
+      <div class="flex h-12 shrink-0 items-center justify-between gap-3 border-b px-4">
+        <div class="flex min-w-0 items-center gap-3">
+          <img [src]="getFileIcon(file.name)" alt="" class="size-4 shrink-0 dark:invert" />
+          <span class="text-code-foreground truncate text-sm" [zTooltip]="file.path" zPosition="bottom">
+            {{ file.path }}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          (click)="copyToClipboard()"
+          [title]="copied() ? 'Copied' : 'Copy code'"
+          class="text-muted-foreground hover:bg-muted-foreground/15 hover:text-foreground flex size-7 shrink-0 items-center justify-center rounded-md transition-colors"
+        >
+          <ng-icon [name]="copied() ? 'lucideCheck' : 'lucideClipboard'" class="size-4!" />
+          <span class="sr-only">Copy to clipboard</span>
+        </button>
+      </div>
+
+      <div class="min-w-0 flex-1 overflow-auto p-2.5 text-sm">
+        <z-simple-code-highlight
+          [code]="file.content"
+          [language]="file.language"
+          [showCopyButton]="false"
+          [showLineNumbers]="true"
+        />
+      </div>
+    }
+  </div>
+</div>

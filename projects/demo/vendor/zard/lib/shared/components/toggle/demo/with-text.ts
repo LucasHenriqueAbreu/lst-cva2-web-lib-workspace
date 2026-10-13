@@ -1,0 +1,20 @@
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideItalic } from '@ng-icons/lucide';
+
+import { ZardToggleComponent } from '../toggle.component';
+
+@Component({
+  selector: 'z-demo-toggle-with-text',
+  imports: [ZardToggleComponent, NgIcon],
+  template: `
+    <z-toggle zAriaLabel="Toggle italic">
+      <ng-icon name="lucideItalic" />
+      Italic
+    </z-toggle>
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  viewProviders: [provideIcons({ lucideItalic })],
+})
+export class ZardDemoToggleWithTextComponent {}

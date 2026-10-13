@@ -1,0 +1,28 @@
+{
+  "$schema": "https://zardui.com/schema/registry-item.json",
+  "name": "separator",
+  "type": "registry:component",
+  "files": [
+    {
+      "name": "separator.component.ts",
+      "content": "import {\n  booleanAttribute,\n  ChangeDetectionStrategy,\n  Component,\n  computed,\n  input,\n  ViewEncapsulation,\n} from '@angular/core';\n\nimport type { ClassValue } from 'clsx';\n\nimport { mergeClasses } from '@/shared/utils/merge-classes';\n\nimport { separatorVariants, type ZardSeparatorVariants } from './separator.variants';\n\n@Component({\n  selector: 'z-separator',\n  template: '',\n  changeDetection: ChangeDetectionStrategy.OnPush,\n  encapsulation: ViewEncapsulation.None,\n  host: {\n    'data-slot': 'separator',\n    '[attr.data-orientation]': 'zOrientation()',\n    '[attr.role]': 'zDecorative() ? \"none\" : \"separator\"',\n    '[attr.aria-orientation]': '!zDecorative() && zOrientation() === \"vertical\" ? \"vertical\" : null',\n    '[class]': 'classes()',\n  },\n  exportAs: 'zSeparator',\n})\nexport class ZardSeparatorComponent {\n  readonly zOrientation = input<ZardSeparatorVariants['zOrientation']>('horizontal');\n  readonly zDecorative = input(true, { transform: booleanAttribute });\n  readonly class = input<ClassValue>('');\n\n  // shadcn/ui uses div through SeparatorPrimitive. We don't use div, so we need to add 'block' class\n  // to make it match shadcn/ui styling\n  protected readonly classes = computed(() => mergeClasses(separatorVariants(), 'block', this.class()));\n}\n"
+    },
+    {
+      "name": "separator.variants.ts",
+      "content": "import { cva, type VariantProps } from 'class-variance-authority';\n\nexport const separatorVariants = cva(\n  'bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:w-px data-[orientation=vertical]:self-stretch',\n  {\n    variants: {\n      zOrientation: {\n        horizontal: '',\n        vertical: '',\n      },\n    },\n    defaultVariants: {\n      zOrientation: 'horizontal',\n    },\n  },\n);\n\nexport type ZardSeparatorVariants = VariantProps<typeof separatorVariants>;\n"
+    },
+    {
+      "name": "index.ts",
+      "content": "export * from './separator.component';\nexport * from './separator.variants';\n"
+    }
+  ],
+  "icons": {
+    "family": "lucide",
+    "symbols": [],
+    "tokens": [],
+    "demos": {
+      "symbols": [],
+      "tokens": []
+    }
+  }
+}

@@ -1,0 +1,46 @@
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucidePlus } from '@ng-icons/lucide';
+
+import { ZardButtonComponent } from '@/shared/components/button/button.component';
+import { ZardButtonGroupComponent } from '@/shared/components/button-group/button-group.component';
+
+@Component({
+  selector: 'z-demo-button-group-size',
+  imports: [ZardButtonGroupComponent, ZardButtonComponent, NgIcon],
+  template: `
+    <z-button-group>
+      <button type="button" z-button zType="outline" zSize="sm">Small</button>
+      <button type="button" z-button zType="outline" zSize="sm">Button</button>
+      <button type="button" z-button zType="outline" zSize="sm">Group</button>
+      <button type="button" z-button zType="outline" zSize="icon-sm" aria-label="Add">
+        <ng-icon name="lucidePlus" />
+      </button>
+    </z-button-group>
+
+    <z-button-group>
+      <button type="button" z-button zType="outline">Default</button>
+      <button type="button" z-button zType="outline">Button</button>
+      <button type="button" z-button zType="outline">Group</button>
+      <button type="button" z-button zType="outline" zSize="icon" aria-label="Add">
+        <ng-icon name="lucidePlus" />
+      </button>
+    </z-button-group>
+
+    <z-button-group>
+      <button type="button" z-button zType="outline" zSize="lg">Large</button>
+      <button type="button" z-button zType="outline" zSize="lg">Button</button>
+      <button type="button" z-button zType="outline" zSize="lg">Group</button>
+      <button type="button" z-button zType="outline" zSize="icon-lg" aria-label="Add">
+        <ng-icon name="lucidePlus" />
+      </button>
+    </z-button-group>
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  viewProviders: [provideIcons({ lucidePlus })],
+  host: {
+    class: 'flex flex-col items-start gap-8',
+  },
+})
+export class ZardDemoButtonGroupSizeComponent {}

@@ -1,0 +1,493 @@
+import { Overlay, OverlayPositionBuilder, type OverlayRef } from '@angular/cdk/overlay';
+import {
+  ElementRef,
+  PLATFORM_ID,
+  type Renderer2,
+  RendererFactory2,
+  type TemplateRef,
+  type ViewContainerRef,
+} from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+
+import { ZardDropdownService } from './dropdown.service';
+
+describe('ZardDropdownService', () => {
+  let service: ZardDropdownService;
+  let mockOverlay: jest.Mocked<Overlay>;
+  let mockOverlayRef: jest.Mocked<OverlayRef & { overlayElement: HTMLElement }>;
+  let mockOverlayPositionBuilder: jest.Mocked<OverlayPositionBuilder>;
+  let mockPositionStrategy: jest.Mocked<unknown>;
+  let mockRendererFactory: jest.Mocked<RendererFactory2>;
+  let mockRenderer: jest.Mocked<Renderer2>;
+  let mockUnlistenFn: jest.Mock;
+
+  beforeEach(() => {
+    mockPositionStrategy = {
+      apply: jest.fn(),
+    } as unknown as jest.Mocked<unknown>;
+
+    mockOverlayRef = {
+      attach: jest.fn(),
+      detach: jest.fn(),
+      dispose: jest.fn(),
+      hasAttached: jest.fn().mockReturnValue(true),
+      outsidePointerEvents: jest.fn().mockReturnValue({
+        pipe: jest.fn().mockReturnValue({
+          subscribe: jest.fn().mockReturnValue({
+            unsubscribe: jest.fn(),
+          }),
+        }),
+      }),
+      keydownEvents: jest.fn().mockReturnValue({
+        subscribe: jest.fn().mockReturnValue({
+          unsubscribe: jest.fn(),
+        }),
+      }),
+      overlayElement: document.createElement('div'),
+      hostElement: document.createElement('div'),
+    } as unknown as jest.Mocked<OverlayRef & { overlayElement: HTMLElement }>;
+
+    mockOverlayPositionBuilder = {
+      flexibleConnectedTo: jest.fn().mockReturnValue({
+        withPositions: jest.fn().mockReturnValue({
+          withPush: jest.fn().mockReturnValue(mockPositionStrategy),
+          withFlexibleDimensions: jest.fn().mockReturnValue({
+            withPush: jest.fn().mockReturnValue(mockPositionStrategy),
+          }),
+        }),
+      }),
+    } as unknown as jest.Mocked<OverlayPositionBuilder>;
+
+    mockOverlay = {
+      create: jest.fn().mockReturnValue(mockOverlayRef),
+      scrollStrategies: {
+        reposition: jest.fn().mockReturnValue({}),
+        close: jest.fn().mockReturnValue({}),
+      },
+    } as unknown as jest.Mocked<Overlay>;
+
+    mockUnlistenFn = jest.fn();
+    mockRenderer = {
+      listen: jest.fn().mockReturnValue(mockUnlistenFn),
+      destroy: jest.fn(),
+    } as unknown as jest.Mocked<Renderer2>;
+
+    mockRendererFactory = {
+      createRenderer: jest.fn().mockReturnValue(mockRenderer),
+    } as unknown as jest.Mocked<RendererFactory2>;
+
+    TestBed.configureTestingModule({
+      providers: [
+        ZardDropdownService,
+        { provide: Overlay, useValue: mockOverlay },
+        { provide: OverlayPositionBuilder, useValue: mockOverlayPositionBuilder },
+        { provide: PLATFORM_ID, useValue: 'browser' },
+        { provide: RendererFactory2, useValue: mockRendererFactory },
+      ],
+    });
+
+    service = TestBed.inject(ZardDropdownService);
+  });
+
+  it('creates the service', () => {
+    expect(service).toBeTruthy();
+    expect(service.isOpen()).toBe(false);
+  });
+
+  describe('toggle', () => {
+    let triggerElement: ElementRef;
+    let templateRef: TemplateRef<unknown>;
+    let viewContainerRef: ViewContainerRef;
+
+    beforeEach(() => {
+      triggerElement = new ElementRef(document.createElement('button'));
+      templateRef = { elementRef: new ElementRef(document.createElement('div')) } as TemplateRef<unknown>;
+      viewContainerRef = {
+        createEmbeddedView: jest.fn(),
+        clear: jest.fn(),
+        element: new ElementRef(document.createElement('div')),
+        injector: TestBed.inject(PLATFORM_ID),
+      } as unknown as ViewContainerRef;
+    });
+
+    it('opens the dropdown when closed', () => {
+      service.toggle(triggerElement, templateRef, viewContainerRef);
+
+      expect(mockOverlay.create).toHaveBeenCalled();
+      expect(service.isOpen()).toBe(true);
+    });
+
+    it('closes the dropdown when open', () => {
+      service.toggle(triggerElement, templateRef, viewContainerRef);
+      service.toggle(triggerElement, templateRef, viewContainerRef);
+
+      expect(mockOverlayRef.detach).toHaveBeenCalled();
+      expect(service.isOpen()).toBe(false);
+    });
+  });
+
+  describe('close', () => {
+    let triggerElement: ElementRef;
+    let templateRef: TemplateRef<unknown>;
+    let viewContainerRef: ViewContainerRef;
+
+    beforeEach(() => {
+      triggerElement = new ElementRef(document.createElement('button'));
+      templateRef = { elementRef: new ElementRef(document.createElement('div')) } as TemplateRef<unknown>;
+      viewContainerRef = {
+        createEmbeddedView: jest.fn(),
+        clear: jest.fn(),
+        element: new ElementRef(document.createElement('div')),
+        injector: TestBed.inject(PLATFORM_ID),
+      } as unknown as ViewContainerRef;
+
+      service.toggle(triggerElement, templateRef, viewContainerRef);
+    });
+
+    it('detaches the overlay if attached', () => {
+      mockOverlayRef.hasAttached.mockReturnValue(true);
+
+      service.close();
+
+      expect(mockOverlayRef.detach).toHaveBeenCalled();
+    });
+
+    it('does not detach the overlay if not attached', () => {
+      mockOverlayRef.hasAttached.mockReturnValue(false);
+
+      service.close();
+
+      expect(mockOverlayRef.detach).not.toHaveBeenCalled();
+    });
+
+    it('sets isOpen signal to false', () => {
+      service.close();
+
+      expect(service.isOpen()).toBe(false);
+    });
+
+    it('disposes of the overlay', () => {
+      service.close();
+
+      expect(mockOverlayRef.dispose).toHaveBeenCalled();
+    });
+
+    it('calls unlisten after keyboard navigation is set up', async () => {
+      const menuElement = document.createElement('div');
+      menuElement.setAttribute('role', 'menu');
+      mockOverlayRef.overlayElement.appendChild(menuElement);
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      service.close();
+
+      expect(mockUnlistenFn).toHaveBeenCalled();
+    });
+  });
+
+  describe('keyboard navigation', () => {
+    let triggerElement: ElementRef;
+    let templateRef: TemplateRef<unknown>;
+    let viewContainerRef: ViewContainerRef;
+    let menuElement: HTMLElement;
+    let menuItems: HTMLElement[];
+    let keydownHandler: ((event: KeyboardEvent) => void) | undefined;
+    let typeaheadHandler: ((event: KeyboardEvent) => void) | undefined;
+
+    beforeEach(() => {
+      keydownHandler = undefined;
+      typeaheadHandler = undefined;
+      // Two listeners are registered on the surface — the command set and the typeahead — so the
+      // handler is picked by event name instead of by whichever one was bound last.
+      mockRenderer.listen.mockImplementation((_target, eventName, callback) => {
+        if (eventName === 'keydown') {
+          typeaheadHandler = callback as (event: KeyboardEvent) => void;
+        } else if (String(eventName).startsWith('keydown.')) {
+          keydownHandler = callback as (event: KeyboardEvent) => void;
+        }
+        return mockUnlistenFn;
+      });
+
+      triggerElement = new ElementRef(document.createElement('button'));
+      templateRef = { elementRef: new ElementRef(document.createElement('div')) } as TemplateRef<unknown>;
+      viewContainerRef = {
+        createEmbeddedView: jest.fn(),
+        clear: jest.fn(),
+        element: new ElementRef(document.createElement('div')),
+        injector: TestBed.inject(PLATFORM_ID),
+      } as unknown as ViewContainerRef;
+
+      menuElement = document.createElement('div');
+      menuElement.setAttribute('role', 'menu');
+
+      menuItems = [document.createElement('div'), document.createElement('div'), document.createElement('div')];
+
+      menuItems.forEach(item => {
+        item.setAttribute('z-dropdown-menu-item', '');
+        menuElement.appendChild(item);
+      });
+
+      mockOverlayRef.overlayElement.appendChild(menuElement);
+    });
+
+    it('sets up keyboard navigation on open', async () => {
+      service.toggle(triggerElement, templateRef, viewContainerRef);
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(mockRenderer.listen).toHaveBeenCalled();
+    });
+
+    it('listens for the supported keyboard command set on the menu container', async () => {
+      service.toggle(triggerElement, templateRef, viewContainerRef);
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(mockRenderer.listen).toHaveBeenCalledWith(
+        menuElement,
+        'keydown.{arrowdown,arrowup,enter,space,escape,home,end}.prevent',
+        expect.any(Function),
+      );
+    });
+
+    it('does not set up keyboard navigation when menu element is missing', () => {
+      mockOverlayRef.overlayElement = document.createElement('div');
+
+      service.toggle(triggerElement, templateRef, viewContainerRef);
+
+      expect(mockRenderer.listen).not.toHaveBeenCalled();
+    });
+
+    it('navigates element and attribute selector items while skipping disabled items', async () => {
+      menuElement.innerHTML = '';
+      const elementItem = document.createElement('z-dropdown-menu-item');
+      const disabledItem = document.createElement('z-dropdown-menu-item');
+      const attributeItem = document.createElement('button');
+      attributeItem.setAttribute('z-dropdown-menu-item', '');
+      disabledItem.dataset['disabled'] = '';
+      menuElement.append(elementItem, disabledItem, attributeItem);
+
+      service.toggle(triggerElement, templateRef, viewContainerRef);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      keydownHandler?.(new KeyboardEvent('keydown', { key: 'End' }));
+
+      expect(attributeItem).toHaveAttribute('data-highlighted', '');
+      expect(disabledItem).not.toHaveAttribute('data-highlighted');
+
+      keydownHandler?.(new KeyboardEvent('keydown', { key: 'Home' }));
+
+      expect(elementItem).toHaveAttribute('data-highlighted', '');
+      expect(attributeItem).not.toHaveAttribute('data-highlighted');
+    });
+
+    it('activates the highlighted item with Enter and Space keys', async () => {
+      const firstItemClick = jest.spyOn(menuItems[0], 'click');
+
+      service.toggle(triggerElement, templateRef, viewContainerRef);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      keydownHandler?.(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+      keydownHandler?.(new KeyboardEvent('keydown', { key: 'Enter' }));
+      keydownHandler?.(new KeyboardEvent('keydown', { key: ' ' }));
+
+      expect(firstItemClick).toHaveBeenCalledTimes(2);
+    });
+
+    it('returns focus to the trigger when Escape closes the menu', async () => {
+      const focusSpy = jest.spyOn(triggerElement.nativeElement, 'focus');
+
+      service.toggle(triggerElement, templateRef, viewContainerRef);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      keydownHandler?.(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+      expect(service.isOpen()).toBe(false);
+      expect(focusSpy).toHaveBeenCalled();
+    });
+
+    it('jumps to the next item starting with the typed character', async () => {
+      menuElement.innerHTML = '';
+      const profile = document.createElement('z-dropdown-menu-item');
+      profile.textContent = 'Profile';
+      const billing = document.createElement('z-dropdown-menu-item');
+      billing.textContent = 'Billing';
+      menuElement.append(profile, billing);
+
+      service.toggle(triggerElement, templateRef, viewContainerRef);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      typeaheadHandler?.(new KeyboardEvent('keydown', { key: 'b' }));
+
+      expect(billing).toHaveAttribute('data-highlighted', '');
+      expect(profile).not.toHaveAttribute('data-highlighted');
+    });
+
+    it('leaves the highlight alone when no item matches the typed character', async () => {
+      service.toggle(triggerElement, templateRef, viewContainerRef);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      typeaheadHandler?.(new KeyboardEvent('keydown', { key: 'z' }));
+
+      expect(menuItems.some(item => item.hasAttribute('data-highlighted'))).toBe(false);
+    });
+  });
+
+  describe('focused item management', () => {
+    let triggerElement: ElementRef;
+    let templateRef: TemplateRef<unknown>;
+    let viewContainerRef: ViewContainerRef;
+
+    beforeEach(() => {
+      triggerElement = new ElementRef(document.createElement('button'));
+      templateRef = { elementRef: new ElementRef(document.createElement('div')) } as TemplateRef<unknown>;
+      viewContainerRef = {
+        createEmbeddedView: jest.fn(),
+        clear: jest.fn(),
+        element: new ElementRef(document.createElement('div')),
+        injector: TestBed.inject(PLATFORM_ID),
+      } as unknown as ViewContainerRef;
+    });
+
+    it('focuses menu container on open', async () => {
+      const menuElement = document.createElement('div');
+      menuElement.setAttribute('role', 'menu');
+
+      const firstItem = document.createElement('div');
+      firstItem.setAttribute('z-dropdown-menu-item', '');
+      menuElement.appendChild(firstItem);
+
+      mockOverlayRef.overlayElement.appendChild(menuElement);
+
+      service.toggle(triggerElement, templateRef, viewContainerRef);
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(firstItem.dataset['highlighted']).toBeUndefined();
+    });
+  });
+
+  describe('openAt', () => {
+    let templateRef: TemplateRef<unknown>;
+    let viewContainerRef: ViewContainerRef;
+
+    beforeEach(() => {
+      templateRef = { elementRef: new ElementRef(document.createElement('div')) } as TemplateRef<unknown>;
+      viewContainerRef = {
+        createEmbeddedView: jest.fn(),
+        clear: jest.fn(),
+        element: new ElementRef(document.createElement('div')),
+        injector: TestBed.inject(PLATFORM_ID),
+      } as unknown as ViewContainerRef;
+    });
+
+    it('anchors the overlay to the given coordinate', () => {
+      service.openAt({ x: 120, y: 240 }, templateRef, viewContainerRef);
+
+      expect(mockOverlayPositionBuilder.flexibleConnectedTo).toHaveBeenCalledWith({ x: 120, y: 240 });
+      expect(service.isOpen()).toBe(true);
+    });
+
+    it('dismisses the menu on scroll', () => {
+      service.openAt({ x: 0, y: 0 }, templateRef, viewContainerRef);
+
+      expect(mockOverlay.scrollStrategies.close).toHaveBeenCalled();
+    });
+
+    it('remembers the focus origin so Escape can return the focus to it', () => {
+      const focusOrigin = new ElementRef(document.createElement('div'));
+
+      service.openAt({ x: 10, y: 10 }, templateRef, viewContainerRef, focusOrigin);
+
+      expect(service.getTriggerElement()).toBe(focusOrigin);
+    });
+
+    it('closes an already open menu before opening at the new coordinate', () => {
+      service.openAt({ x: 10, y: 10 }, templateRef, viewContainerRef);
+      service.openAt({ x: 50, y: 50 }, templateRef, viewContainerRef);
+
+      expect(mockOverlayRef.detach).toHaveBeenCalled();
+      expect(mockOverlayPositionBuilder.flexibleConnectedTo).toHaveBeenLastCalledWith({ x: 50, y: 50 });
+    });
+  });
+});
+
+describe('ZardDropdownService - server platform behavior', () => {
+  let service: ZardDropdownService;
+  let triggerElement: ElementRef;
+  let templateRef: TemplateRef<unknown>;
+  let viewContainerRef: ViewContainerRef;
+  let mockOverlay: jest.Mocked<Overlay>;
+  let mockOverlayRef: jest.Mocked<OverlayRef & { overlayElement: HTMLElement }>;
+  let mockOverlayPositionBuilder: jest.Mocked<OverlayPositionBuilder>;
+  let mockRenderer: jest.Mocked<Renderer2>;
+
+  beforeEach(() => {
+    mockOverlayRef = {
+      attach: jest.fn(),
+      detach: jest.fn(),
+      dispose: jest.fn(),
+      hasAttached: jest.fn().mockReturnValue(true),
+      outsidePointerEvents: jest.fn().mockReturnValue({
+        pipe: jest.fn().mockReturnValue({
+          subscribe: jest.fn().mockReturnValue({
+            unsubscribe: jest.fn(),
+          }),
+        }),
+      }),
+      keydownEvents: jest.fn().mockReturnValue({
+        subscribe: jest.fn().mockReturnValue({
+          unsubscribe: jest.fn(),
+        }),
+      }),
+      overlayElement: document.createElement('div'),
+      hostElement: document.createElement('div'),
+    } as unknown as jest.Mocked<OverlayRef & { overlayElement: HTMLElement }>;
+
+    mockOverlayPositionBuilder = {
+      flexibleConnectedTo: jest.fn().mockReturnValue({
+        withPositions: jest.fn().mockReturnValue({
+          withPush: jest.fn().mockReturnValue({}),
+        }),
+      }),
+    } as unknown as jest.Mocked<OverlayPositionBuilder>;
+
+    mockOverlay = {
+      create: jest.fn().mockReturnValue(mockOverlayRef),
+      scrollStrategies: {
+        reposition: jest.fn().mockReturnValue({}),
+      },
+    } as unknown as jest.Mocked<Overlay>;
+
+    mockRenderer = {
+      listen: jest.fn(),
+      destroy: jest.fn(),
+    } as unknown as jest.Mocked<Renderer2>;
+
+    const mockRendererFactory = {
+      createRenderer: jest.fn().mockReturnValue(mockRenderer),
+    } as unknown as jest.Mocked<RendererFactory2>;
+
+    TestBed.configureTestingModule({
+      providers: [
+        ZardDropdownService,
+        { provide: Overlay, useValue: mockOverlay },
+        { provide: OverlayPositionBuilder, useValue: mockOverlayPositionBuilder },
+        { provide: PLATFORM_ID, useValue: 'server' },
+        { provide: RendererFactory2, useValue: mockRendererFactory },
+      ],
+    });
+
+    service = TestBed.inject(ZardDropdownService);
+
+    triggerElement = new ElementRef(document.createElement('button'));
+    templateRef = { elementRef: new ElementRef(document.createElement('div')) } as TemplateRef<unknown>;
+    viewContainerRef = {
+      createEmbeddedView: jest.fn(),
+      clear: jest.fn(),
+      element: new ElementRef(document.createElement('div')),
+      injector: TestBed.inject(PLATFORM_ID),
+    } as unknown as ViewContainerRef;
+  });
+
+  it('does not set up keyboard navigation on server platform', () => {
+    service.toggle(triggerElement, templateRef, viewContainerRef);
+
+    expect(mockRenderer.listen).not.toHaveBeenCalled();
+  });
+});

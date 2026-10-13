@@ -1,0 +1,21 @@
+{
+  "$schema": "https://zardui.com/schema.json",
+  "style": "css",
+  "icons": "lucide",
+  "rtl": false,
+  "projectType": "angular-library",
+  "appConfigFile": "",
+  "packageManager": "npm",
+  "tailwind": {
+    "css": "projects/components/src/styles.css",
+    "baseColor": "neutral"
+  },
+  "baseUrl": "projects/components/src/lib",
+  "aliases": {
+    "components": "@/shared/components",
+    "utils": "@/shared/utils",
+    "core": "@/shared/core",
+    "services": "@/shared/services",
+    "blocks": "@/shared/blocks"
+  }
+}

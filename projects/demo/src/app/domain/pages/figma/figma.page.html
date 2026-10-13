@@ -1,0 +1,63 @@
+<z-content
+  [navigationConfig]="navigationConfig"
+  [activeAnchor]="activeAnchor"
+  scrollSpy
+  (scrollSpyChange)="activeAnchor = $event"
+>
+  <z-doc-heading
+    title="Figma"
+    description="Figma kits built for shadcn/ui, which ZardUI follows component for component."
+    scrollSpyItem="overview"
+    id="overview"
+  ></z-doc-heading>
+
+  <!--
+    One note instead of three boxes: the page used to open with two callouts and
+    close with a third promising a ZardUI kit that is not coming. What a reader
+    needs here is why the shadcn/ui files apply, and who maintains them.
+  -->
+  <z-alert zIcon="lucideInfo" zTitle="Design with the shadcn/ui kits" [zDescription]="kitsNote" />
+  <ng-template #kitsNote>
+    ZardUI follows shadcn/ui, so any Figma file built for it maps onto these components — there is no separate ZardUI
+    kit. The files below are maintained by their authors, not by the ZardUI team, so questions and feedback go to each
+    maintainer.
+  </ng-template>
+
+  <section class="flex flex-col gap-6 sm:gap-8" scrollSpyItem="paid" id="paid">
+    <div class="flex flex-col gap-2">
+      <h2 class="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20">Paid</h2>
+      <p class="text-muted-foreground text-sm">Commercial kits, kept up to date by their authors.</p>
+    </div>
+
+    <div class="flex flex-col gap-4">
+      @for (resource of paidResources; track resource.title) {
+        <z-resource-card
+          [title]="resource.title"
+          [author]="resource.author"
+          [description]="resource.description"
+          [badges]="resource.badges"
+          [links]="resource.links"
+        ></z-resource-card>
+      }
+    </div>
+  </section>
+
+  <section class="flex flex-col gap-6 sm:gap-8" scrollSpyItem="free" id="free">
+    <div class="flex flex-col gap-2">
+      <h2 class="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20">Free</h2>
+      <p class="text-muted-foreground text-sm">Community files, free to duplicate from the Figma Community.</p>
+    </div>
+
+    <div class="flex flex-col gap-4">
+      @for (resource of freeResources; track resource.title) {
+        <z-resource-card
+          [title]="resource.title"
+          [author]="resource.author"
+          [description]="resource.description"
+          [badges]="resource.badges"
+          [links]="resource.links"
+        ></z-resource-card>
+      }
+    </div>
+  </section>
+</z-content>

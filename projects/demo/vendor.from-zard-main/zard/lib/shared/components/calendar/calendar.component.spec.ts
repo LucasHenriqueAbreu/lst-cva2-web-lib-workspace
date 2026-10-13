@@ -1,0 +1,576 @@
+import { type ComponentFixture, TestBed } from '@angular/core/testing';
+import { EVENT_MANAGER_PLUGINS } from '@angular/platform-browser';
+
+import { ZardEventManagerPlugin } from '@/shared/core/provider/event-manager-plugins/zard-event-manager-plugin';
+
+import { ZardCalendarComponent, type CalendarDay } from './calendar.component';
+import { isSameDay, isDateDisabled, getDayAriaLabel, generateCalendarDays } from './calendar.utils';
+
+describe('ZardCalendarComponent', () => {
+  let component: ZardCalendarComponent;
+  let fixture: ComponentFixture<ZardCalendarComponent>;
+
+  beforeEach(async () => {
+    jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    await TestBed.configureTestingModule({
+      imports: [ZardCalendarComponent],
+      providers: [
+        {
+          provide: EVENT_MANAGER_PLUGINS,
+          useClass: ZardEventManagerPlugin,
+          multi: true,
+        },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(ZardCalendarComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  describe('Component Creation', () => {
+    it('should create', () => {
+      expect(component).toBeTruthy();
+    });
+
+    it('should initialize with default values', () => {
+      expect(component.class()).toBe('');
+      expect(component.value()).toBeNull();
+      expect(component.minDate()).toBeNull();
+      expect(component.maxDate()).toBeNull();
+      expect(component.disabled()).toBe(false);
+      expect(component.zCaptionLayout()).toBe('label');
+      expect(component.zButtonVariant()).toBe('ghost');
+      expect(component.zShowOutsideDays()).toBe(true);
+      expect(component.zDisabledDates()).toEqual([]);
+      expect(component.zNumberOfMonths()).toBe(1);
+    });
+  });
+
+  describe('Design contract', () => {
+    it('should be the root itself, so a border is never drawn twice', () => {
+      const host = fixture.nativeElement as HTMLElement;
+
+      expect(host.getAttribute('data-slot')).toBe('calendar');
+      expect(host.querySelector('[data-slot="calendar"]')).toBeNull();
+    });
+
+    it('should render without a border and declare the cell CSS variables', () => {
+      const host = fixture.nativeElement as HTMLElement;
+
+      expect(host.className).toContain('p-2');
+      expect(host.className).toContain('w-fit');
+      expect(host.className).toContain('[--cell-size:--spacing(7)]');
+      expect(host.className).toContain('[--cell-radius:var(--radius-md)]');
+      expect(host.className).not.toContain('border');
+    });
+
+    it('should let the class input override the cell size', () => {
+      fixture.componentRef.setInput('class', '[--cell-size:--spacing(12)] rounded-lg border');
+      fixture.detectChanges();
+
+      const host = fixture.nativeElement as HTMLElement;
+
+      expect(host.className).toContain('[--cell-size:--spacing(12)]');
+      expect(host.className).not.toContain('[--cell-size:--spacing(7)]');
+      expect(host.className).toContain('border');
+    });
+
+    it('should position the navigation over a centered caption', () => {
+      const month = (fixture.nativeElement as HTMLElement).querySelector(':scope > div > div');
+      const caption = (fixture.nativeElement as HTMLElement).querySelector('[data-slot="calendar-caption"]');
+
+      expect(month?.className).toContain('relative');
+      expect(caption?.className).toContain('justify-center');
+      expect(caption?.className).toContain('h-(--cell-size)');
+    });
+
+    it('should render the caption in English regardless of the browser locale', () => {
+      fixture.componentRef.setInput('value', new Date(2024, 7, 15));
+      fixture.detectChanges();
+
+      const caption = (fixture.nativeElement as HTMLElement).querySelector('[data-slot="calendar-caption"]');
+
+      expect(caption?.textContent?.trim()).toBe('August 2024');
+    });
+  });
+
+  describe('Caption layout', () => {
+    const layouts = ['label', 'dropdown', 'dropdown-months', 'dropdown-years'] as const;
+
+    it.each(layouts)('should render the %s caption layout', layout => {
+      fixture.componentRef.setInput('zCaptionLayout', layout);
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const expectedSelects = layout === 'label' ? 0 : layout === 'dropdown' ? 2 : 1;
+
+      expect(compiled.querySelectorAll('select')).toHaveLength(expectedSelects);
+    });
+  });
+
+  describe('Outside days', () => {
+    it('should keep outside days visible by default', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelectorAll('[role="gridcell"].invisible')).toHaveLength(0);
+    });
+
+    it('should hide outside days without dropping their grid cells', () => {
+      fixture.componentRef.setInput('value', new Date(2024, 0, 15));
+      fixture.componentRef.setInput('zShowOutsideDays', false);
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const cells = compiled.querySelectorAll('[role="gridcell"]');
+      const hidden = compiled.querySelectorAll('[role="gridcell"].invisible');
+
+      expect(cells.length % 7).toBe(0);
+      expect(hidden.length).toBeGreaterThan(0);
+      expect(hidden.length).toBeLessThan(cells.length);
+    });
+  });
+
+  describe('Disabled dates', () => {
+    it('should disable the individual days listed in zDisabledDates', () => {
+      fixture.componentRef.setInput('value', new Date(2024, 0, 15));
+      fixture.componentRef.setInput('zDisabledDates', [new Date(2024, 0, 10), new Date(2024, 0, 11)]);
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const disabled = [...compiled.querySelectorAll('[role="gridcell"][data-disabled="true"]')];
+
+      expect(disabled).toHaveLength(2);
+      expect(disabled.map(cell => cell.querySelector('button')?.textContent?.trim())).toEqual(['10', '11']);
+      expect(disabled.every(cell => cell.querySelector('button')?.hasAttribute('disabled'))).toBe(true);
+    });
+
+    it('should keep the disabled days in the grid', () => {
+      fixture.componentRef.setInput('value', new Date(2024, 0, 15));
+      fixture.detectChanges();
+      const before = (fixture.nativeElement as HTMLElement).querySelectorAll('[role="gridcell"]').length;
+
+      fixture.componentRef.setInput('zDisabledDates', [new Date(2024, 0, 10)]);
+      fixture.detectChanges();
+      const after = (fixture.nativeElement as HTMLElement).querySelectorAll('[role="gridcell"]').length;
+
+      expect(after).toBe(before);
+    });
+  });
+
+  describe('Multiple months', () => {
+    it('should render one grid per month', () => {
+      fixture.componentRef.setInput('value', new Date(2024, 0, 15));
+      fixture.componentRef.setInput('zNumberOfMonths', 2);
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const captions = [...compiled.querySelectorAll('[data-slot="calendar-caption"]')];
+
+      expect(compiled.querySelectorAll('[role="grid"]')).toHaveLength(2);
+      expect(captions.map(caption => caption.textContent?.trim())).toEqual(['January 2024', 'February 2024']);
+    });
+
+    it('should keep the day ids unique across months', () => {
+      fixture.componentRef.setInput('zNumberOfMonths', 2);
+      fixture.detectChanges();
+
+      const ids = [...(fixture.nativeElement as HTMLElement).querySelectorAll('[role="gridcell"] button')].map(
+        button => button.id,
+      );
+
+      expect(new Set(ids).size).toBe(ids.length);
+    });
+
+    it('should give the first month the previous arrow and the last one the next arrow', () => {
+      fixture.componentRef.setInput('zNumberOfMonths', 2);
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+
+      expect(compiled.querySelectorAll('[aria-label="Previous month"]')).toHaveLength(1);
+      expect(compiled.querySelectorAll('[aria-label="Next month"]')).toHaveLength(1);
+    });
+
+    it('should rebase the navigation when the caption of a later month changes', () => {
+      fixture.componentRef.setInput('value', new Date(2024, 0, 15));
+      fixture.componentRef.setInput('zNumberOfMonths', 2);
+      fixture.detectChanges();
+
+      // Picking May on the second caption must pull the first month back to April.
+      component['onMonthChange']('4', 1);
+      fixture.detectChanges();
+
+      const captions = [...(fixture.nativeElement as HTMLElement).querySelectorAll('[data-slot="calendar-caption"]')];
+
+      expect(component['currentMonthValue']()).toBe('3');
+      expect(captions.map(caption => caption.textContent?.trim())).toEqual(['April 2024', 'May 2024']);
+    });
+
+    it('should rebase the year the same way', () => {
+      fixture.componentRef.setInput('value', new Date(2024, 11, 15));
+      fixture.componentRef.setInput('zNumberOfMonths', 2);
+      fixture.detectChanges();
+
+      // The second caption reads "January 2025"; moving it to 2026 keeps December before it.
+      component['onYearChange']('2026', 1);
+      fixture.detectChanges();
+
+      const captions = [...(fixture.nativeElement as HTMLElement).querySelectorAll('[data-slot="calendar-caption"]')];
+
+      expect(captions.map(caption => caption.textContent?.trim())).toEqual(['December 2025', 'January 2026']);
+    });
+  });
+
+  describe('Button variant', () => {
+    it('should forward zButtonVariant to the navigation arrows', () => {
+      fixture.componentRef.setInput('zButtonVariant', 'outline');
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const previous = compiled.querySelector('[aria-label="Previous month"]');
+      const next = compiled.querySelector('[aria-label="Next month"]');
+
+      expect(previous).toHaveAttribute('data-variant', 'outline');
+      expect(next).toHaveAttribute('data-variant', 'outline');
+    });
+  });
+
+  describe('Date Selection', () => {
+    it('should emit dateChange when a date is selected', () => {
+      const testDate = new Date(2024, 0, 15);
+      let emittedDate: Date | Date[] | undefined;
+
+      component.dateChange.subscribe((date: Date | Date[]) => {
+        emittedDate = date;
+      });
+
+      // Simulate clicking on a date through the grid component
+      component['onDateSelect']({ date: testDate, index: 0 });
+
+      expect(emittedDate).toEqual(testDate);
+    });
+
+    it('should not select date when component is disabled', () => {
+      Object.defineProperty(component, 'disabled', {
+        value: () => true,
+        writable: true,
+      });
+
+      const testDate = new Date(2024, 0, 15);
+      let emittedDate: Date | Date[] | undefined;
+
+      component.dateChange.subscribe((date: Date | Date[]) => {
+        emittedDate = date;
+      });
+
+      component['onDateSelect']({ date: testDate, index: 0 });
+
+      expect(emittedDate).toBeUndefined();
+    });
+  });
+
+  describe('Navigation', () => {
+    it('should navigate to previous month', () => {
+      const initialDate = new Date(2024, 5, 1); // June 2024
+      component['value'].set(initialDate);
+
+      component['previousMonth']();
+
+      expect(component['currentMonthValue']()).toBe('4'); // May
+      expect(component['currentYearValue']()).toBe('2024');
+    });
+
+    it('should navigate to next month', () => {
+      const initialDate = new Date(2024, 5, 1); // June 2024
+      component['value'].set(initialDate);
+
+      component['nextMonth']();
+
+      expect(component['currentMonthValue']()).toBe('6'); // July
+      expect(component['currentYearValue']()).toBe('2024');
+    });
+  });
+
+  describe('Month and Year Selection', () => {
+    it('should change month when valid month index is provided', () => {
+      const initialDate = new Date(2024, 5, 1); // June 2024
+      component['value'].set(initialDate);
+
+      component['onMonthChange']('2'); // March (index 2)
+
+      expect(component['currentMonthValue']()).toBe('2');
+      expect(component['currentYearValue']()).toBe('2024');
+    });
+
+    it('should not change month when invalid month index is provided', () => {
+      const initialDate = new Date(2024, 5, 1); // June 2024
+      component['value'].set(initialDate);
+
+      const beforeMonth = component['currentMonthValue']();
+
+      component['onMonthChange']('invalid');
+      component['onMonthChange']('12'); // Invalid month
+      component['onMonthChange'](''); // Empty string
+
+      expect(component['currentMonthValue']()).toBe(beforeMonth);
+    });
+
+    it('should change year when valid year is provided', () => {
+      const initialDate = new Date(2024, 5, 1); // June 2024
+      component['value'].set(initialDate);
+
+      component['onYearChange']('2025');
+
+      expect(component['currentYearValue']()).toBe('2025');
+      expect(component['currentMonthValue']()).toBe('5'); // Should remain June
+    });
+
+    it('should not change year when invalid year is provided', () => {
+      const initialDate = new Date(2024, 5, 1); // June 2024
+      component['value'].set(initialDate);
+
+      component['onYearChange']('invalid');
+      component['onYearChange']('1899'); // Too old (below 1900)
+      component['onYearChange']('2101'); // Too new (above 2100)
+      component['onYearChange'](''); // Empty string
+
+      expect(component['currentYearValue']()).toBe('2024'); // Should remain 2024
+    });
+  });
+
+  describe('Calendar Days Generation', () => {
+    it('should generate calendar days for current month', () => {
+      const date = new Date(2024, 0, 1); // January 2024
+      component['value'].set(date);
+
+      const calendarDays = component['calendarDays']();
+      expect(calendarDays.length).toBeGreaterThan(0);
+
+      // Should include days from previous and next month to fill the grid
+      const hasCurrentMonth = calendarDays.some(day => day.isCurrentMonth);
+      expect(hasCurrentMonth).toBe(true);
+    });
+
+    it('should mark today correctly', () => {
+      const today = new Date();
+      component['value'].set(new Date(today.getFullYear(), today.getMonth(), 1));
+
+      const calendarDays = component['calendarDays']();
+      const todayDay = calendarDays.find(day => day.isToday);
+
+      expect(todayDay).toBeDefined();
+      if (todayDay) {
+        expect(todayDay.date.getDate()).toBe(today.getDate());
+      }
+    });
+
+    it('should mark selected date correctly', () => {
+      const selectedDate = new Date(2024, 0, 15);
+      component['value'].set(selectedDate);
+
+      const calendarDays = component['calendarDays']();
+      const selectedDay = calendarDays.find(day => day.isSelected);
+
+      expect(selectedDay).toBeDefined();
+      if (selectedDay) {
+        expect(selectedDay.date.getDate()).toBe(15);
+      }
+    });
+  });
+
+  describe('Focus Management', () => {
+    it('should reset navigation to current value on reset', () => {
+      const testDate = new Date(2024, 5, 15);
+      component['value'].set(testDate);
+
+      component['previousMonth']();
+      component.resetNavigation();
+
+      expect(component['currentDate']().getTime()).toEqual(testDate.getTime());
+    });
+  });
+});
+
+describe('Calendar Utility Functions', () => {
+  describe('isSameDay', () => {
+    it('should correctly identify same day', () => {
+      const date1 = new Date(2024, 5, 15, 10, 30);
+      const date2 = new Date(2024, 5, 15, 14, 45);
+      const date3 = new Date(2024, 5, 16, 10, 30);
+
+      expect(isSameDay(date1, date2)).toBe(true);
+      expect(isSameDay(date1, date3)).toBe(false);
+    });
+  });
+
+  describe('isDateDisabled', () => {
+    it('should correctly identify disabled dates', () => {
+      const minDate = new Date(2024, 0, 10);
+      const maxDate = new Date(2024, 0, 20);
+      const testDate1 = new Date(2024, 0, 5); // Before min
+      const testDate2 = new Date(2024, 0, 15); // Within range
+      const testDate3 = new Date(2024, 0, 25); // After max
+
+      expect(isDateDisabled(testDate1, minDate, maxDate)).toBe(true);
+      expect(isDateDisabled(testDate2, minDate, maxDate)).toBe(false);
+      expect(isDateDisabled(testDate3, minDate, maxDate)).toBe(true);
+    });
+
+    it('should disable the days listed in disabledDates, ignoring their time', () => {
+      const disabledDates = [new Date(2024, 0, 15, 8, 30)];
+
+      expect(isDateDisabled(new Date(2024, 0, 15), null, null, disabledDates)).toBe(true);
+      expect(isDateDisabled(new Date(2024, 0, 16), null, null, disabledDates)).toBe(false);
+      expect(isDateDisabled(new Date(2024, 0, 15), null, null, [])).toBe(false);
+    });
+
+    it('should handle null min/max dates', () => {
+      const testDate = new Date(2024, 0, 15);
+
+      expect(isDateDisabled(testDate, null, null)).toBe(false);
+    });
+  });
+
+  describe('getDayAriaLabel', () => {
+    it('should generate correct aria label for regular day', () => {
+      const day: CalendarDay = {
+        date: new Date(2024, 0, 15),
+        isCurrentMonth: true,
+        isToday: false,
+        isSelected: false,
+        isDisabled: false,
+      };
+
+      const ariaLabel = getDayAriaLabel(day);
+      expect(ariaLabel).toContain('Monday, January 15, 2024');
+    });
+
+    it('should generate correct aria label for today', () => {
+      const today = new Date();
+      const day: CalendarDay = {
+        date: today,
+        isCurrentMonth: true,
+        isToday: true,
+        isSelected: false,
+        isDisabled: false,
+      };
+
+      const ariaLabel = getDayAriaLabel(day);
+      expect(ariaLabel).toContain('Today');
+    });
+
+    it('should generate correct aria label for selected day', () => {
+      const day: CalendarDay = {
+        date: new Date(2024, 0, 15),
+        isCurrentMonth: true,
+        isToday: false,
+        isSelected: true,
+        isDisabled: false,
+      };
+
+      const ariaLabel = getDayAriaLabel(day);
+      expect(ariaLabel).toContain('Selected');
+    });
+
+    it('should generate correct aria label for outside month day', () => {
+      const day: CalendarDay = {
+        date: new Date(2024, 0, 31),
+        isCurrentMonth: false,
+        isToday: false,
+        isSelected: false,
+        isDisabled: false,
+      };
+
+      const ariaLabel = getDayAriaLabel(day);
+      expect(ariaLabel).toContain('Outside month');
+    });
+
+    it('should generate correct aria label for disabled day', () => {
+      const day: CalendarDay = {
+        date: new Date(2024, 0, 15),
+        isCurrentMonth: true,
+        isToday: false,
+        isSelected: false,
+        isDisabled: true,
+      };
+
+      const ariaLabel = getDayAriaLabel(day);
+      expect(ariaLabel).toContain('Disabled');
+    });
+  });
+
+  describe('generateCalendarDays', () => {
+    it('should generate calendar days with correct structure', () => {
+      const days = generateCalendarDays({
+        year: 2024,
+        month: 0, // January
+        mode: 'single',
+        selectedDates: [],
+        minDate: null,
+        maxDate: null,
+        disabled: false,
+      });
+
+      expect(days.length).toBeGreaterThan(0);
+      expect(days[0]).toHaveProperty('date');
+      expect(days[0]).toHaveProperty('isCurrentMonth');
+      expect(days[0]).toHaveProperty('isToday');
+      expect(days[0]).toHaveProperty('isSelected');
+      expect(days[0]).toHaveProperty('isDisabled');
+    });
+
+    it('should mark selected dates in single mode', () => {
+      const selectedDate = new Date(2024, 0, 15);
+      const days = generateCalendarDays({
+        year: 2024,
+        month: 0,
+        mode: 'single',
+        selectedDates: [selectedDate],
+        minDate: null,
+        maxDate: null,
+        disabled: false,
+      });
+
+      const selectedDay = days.find(day => isSameDay(day.date, selectedDate));
+      expect(selectedDay?.isSelected).toBe(true);
+    });
+
+    it('should mark multiple selected dates in multiple mode', () => {
+      const selectedDates = [new Date(2024, 0, 15), new Date(2024, 0, 20)];
+      const days = generateCalendarDays({
+        year: 2024,
+        month: 0,
+        mode: 'multiple',
+        selectedDates,
+        minDate: null,
+        maxDate: null,
+        disabled: false,
+      });
+
+      const selectedDays = days.filter(day => day.isSelected);
+      expect(selectedDays.length).toBe(2);
+    });
+
+    it('should mark range correctly in range mode', () => {
+      const selectedDates = [new Date(2024, 0, 10), new Date(2024, 0, 20)];
+      const days = generateCalendarDays({
+        year: 2024,
+        month: 0,
+        mode: 'range',
+        selectedDates,
+        minDate: null,
+        maxDate: null,
+        disabled: false,
+      });
+
+      const rangeStart = days.find(day => isSameDay(day.date, selectedDates[0]));
+      const rangeEnd = days.find(day => isSameDay(day.date, selectedDates[1]));
+      const inRange = days.filter(day => day.isInRange);
+
+      expect(rangeStart?.isRangeStart).toBe(true);
+      expect(rangeEnd?.isRangeEnd).toBe(true);
+      expect(inRange.length).toBeGreaterThan(0);
+    });
+  });
+});

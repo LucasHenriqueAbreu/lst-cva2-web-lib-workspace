@@ -1,0 +1,451 @@
+@layer ng-icon, theme, base, components, utilities;
+@import 'tailwindcss';
+@import '../vendor/zard/lib/shared/core/css/zard.css';
+@import '../vendor/zard/lib/shared/core/css/utilities.css';
+@import '../vendor/zard/lib/shared/core/css/typeset.css';
+@import '@fontsource-variable/geist-mono';
+@import '@fontsource-variable/geist';
+
+@plugin 'tailwindcss-animate';
+
+@custom-variant dark (&:is(.dark *));
+@custom-variant fixed (&:is(.layout-fixed *));
+
+:root {
+  --header-height: calc(var(--spacing) * 16);
+  --footer-height: calc(var(--spacing) * 14);
+  --sidebar-width: calc(var(--spacing) * 72);
+  --font-geist-sans: 'Geist Variable', sans-serif;
+  --font-geist-mono: 'Geist Mono Variable', monospace;
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  /* shadcn's default chart palette: the Tailwind blue ramp, 300 → 800, in both themes. */
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  --surface: oklch(0.98 0 0);
+  --surface-foreground: var(--foreground);
+  --code: var(--surface);
+  --code-foreground: var(--surface-foreground);
+  --code-highlight: oklch(0.96 0 0);
+  --code-number: oklch(0.56 0 0);
+  --code-tab-button: oklch(0.925 0 0);
+  --selection: oklch(0.145 0 0);
+  --selection-foreground: oklch(1 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.205 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+  --surface: oklch(0.2 0 0);
+  --surface-foreground: oklch(0.708 0 0);
+  --code: var(--surface);
+  --code-foreground: var(--surface-foreground);
+  --code-highlight: oklch(0.27 0 0);
+  --code-number: oklch(0.72 0 0);
+  --code-tab-button: oklch(0.178 0 0);
+  --selection: oklch(0.922 0 0);
+  --selection-foreground: oklch(0.205 0 0);
+}
+
+@theme inline {
+  --breakpoint-3xl: 1600px;
+  --breakpoint-4xl: 2000px;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-surface: var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+  --color-code: var(--code);
+  --color-code-foreground: var(--code-foreground);
+  --color-code-highlight: var(--code-highlight);
+  --color-code-number: var(--code-number);
+  --color-selection: var(--selection);
+  --color-selection-foreground: var(--selection-foreground);
+  --color-code-tab: var(--code-tab-button);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  ::selection {
+    @apply bg-selection text-selection-foreground;
+  }
+  html {
+    @apply scroll-smooth;
+  }
+
+  [data-slot='layout'] {
+    @apply 3xl:p-2 3xl:fixed:p-0 overscroll-none;
+  }
+
+  a:active,
+  button:active {
+    @apply opacity-60 md:opacity-100;
+  }
+
+  .no-bullets :where(ul, li) {
+    @apply list-none;
+  }
+  .no-bullets li::marker {
+    content: '';
+  }
+
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield; /* Added for general compatibility */
+  }
+}
+
+@utility border-grid {
+  @apply border-border/50 dark:border-border;
+}
+
+@utility section-soft {
+  @apply from-background to-surface/40 dark:bg-background 3xl:fixed:bg-none bg-linear-to-b;
+}
+
+@utility theme-container {
+  @apply font-sans;
+
+  transition:
+    color 0.3s ease,
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@utility container-wrapper {
+  @apply 3xl:fixed:max-w-[calc(var(--breakpoint-2xl)+2rem)] mx-auto w-full px-2;
+}
+
+@utility container {
+  @apply 3xl:max-w-screen-2xl mx-auto max-w-350 px-4 lg:px-8;
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  /*
+   * The typeset builder is a fixed-height tool: it sizes itself to the viewport
+   * and scrolls inside its own panels. The page under it must not scroll as
+   * well, or the controls slide away from the preview they drive.
+   *
+   * The page adds this on the way in and drops it on the way out, so it never
+   * outlives the route — see `TypesetPage`.
+   *
+   * No `scrollbar-gutter` here: a gutter is only reserved for a container that
+   * shows a scrollbar, so it is inert next to `overflow: hidden`. Losing the
+   * bar widens the page by its width for as long as the lock is on.
+   */
+  .scroll-locked {
+    overflow: hidden;
+  }
+
+  /*
+   * The footer goes with it. The builder already fills the viewport under the
+   * header, so the footer is the entire overflow: hiding the bar and leaving it
+   * in the flow only makes it unreachable, and any programmatic scroll — an
+   * anchor, a focused control, the router restoring a position — would strand
+   * the page below the header with no way to scroll back.
+   *
+   * Taking it out of the flow leaves nothing to scroll at all, which is the
+   * difference between a page that refuses to move and a page that has nowhere
+   * to move to.
+   */
+  .scroll-locked z-footer {
+    display: none;
+  }
+}
+
+code[data-line-numbers] {
+  counter-reset: line;
+}
+
+code[data-line-numbers] > [data-line]::before {
+  counter-increment: line;
+  content: counter(line);
+
+  display: inline-block;
+  width: 0.75rem;
+  margin-right: 1.5rem;
+  text-align: right;
+  color: var(--color-code-number);
+}
+
+code[data-line-numbers-max-digits='2'] > [data-line]::before {
+  width: 1.25rem;
+}
+
+code[data-line-numbers-max-digits='3'] > [data-line]::before {
+  width: 1.75rem;
+}
+
+code[data-line-numbers-max-digits='4'] > [data-line]::before {
+  width: 2.25rem;
+}
+
+/* The site's own typeset: the rhythm the documentation prose is written to.
+   The three values are ones the builder at /typeset can reproduce, so anyone
+   reading the docs can land on this exact preset by picking them there.
+
+   They are also the values that land on what the pages already measured, so
+   adopting typeset moved no text: 16px matches `sm:text-base`, 1.6 lands
+   within half a pixel of `leading-relaxed`, and a 1em flow reproduces the
+   `gap-4` these sections used to carry between blocks. */
+.typeset-docs {
+  --typeset-size: 16px;
+  --typeset-leading: 1.6;
+  --typeset-flow: 1em;
+}
+
+/* Shiki code block styling for z-code-block / z-code-tabs */
+pre.shiki {
+  padding: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow: auto;
+  scrollbar-width: none;
+  background-color: var(--color-code) !important;
+}
+
+pre.shiki::-webkit-scrollbar {
+  display: none;
+}
+
+pre.shiki code {
+  display: grid;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Line numbers for shiki output (span.line) via z-code-block */
+.line-numbers code {
+  counter-reset: line;
+}
+
+.line-numbers code > .line::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 1rem;
+  margin-right: 1.5rem;
+  text-align: right;
+  color: var(--color-code-number);
+}
+
+/* Highlighted lines in shiki code blocks */
+pre.shiki code > .line.highlighted {
+  background-color: var(--color-code-highlight);
+  border-left: 2px solid var(--color-muted-foreground);
+  margin-inline: -16px;
+  padding-inline: 14px 16px;
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+  pre.shiki code > .line.highlighted {
+    border-left-color: color-mix(in oklab, var(--color-muted-foreground) 50%, transparent);
+  }
+}
+
+.line-numbers code > .line.highlighted {
+  margin-left: calc(-1rem - 1.5rem - 16px);
+  padding-left: calc(1rem + 1.5rem + 14px);
+}
+
+code,
+code span {
+  color: var(--shiki-light);
+}
+
+.dark code,
+.dark code span {
+  color: var(--shiki-dark);
+}
+
+code [data-highlighted-chars] {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.component-selector {
+  @apply bg-muted text-foreground inline-flex items-center rounded-md px-2 py-1 text-sm font-medium;
+}
+
+.component-badge {
+  @apply inline-flex items-center rounded-md px-2 py-1 text-sm font-medium;
+}
+
+.component-badge--component {
+  @apply bg-blue-500/10 text-blue-600 dark:text-blue-400;
+}
+
+.component-badge--directive {
+  @apply bg-green-500/10 text-green-600 dark:text-green-400;
+}
+
+.component-badge--service {
+  @apply bg-amber-500/10 text-amber-600 dark:text-amber-400;
+}
+
+.component-badge--pipe {
+  @apply bg-purple-500/10 text-purple-600 dark:text-purple-400;
+}
+
+table.api-table--component tbody td:first-child code {
+  @apply border-blue-500/20! bg-blue-500/10! text-blue-600! dark:text-blue-400!;
+}
+
+table.api-table--directive tbody td:first-child code {
+  @apply border-green-500/20! bg-green-500/10! text-green-600! dark:text-green-400!;
+}
+
+table.api-table--service tbody td:first-child code {
+  @apply border-amber-500/20! bg-amber-500/10! text-amber-600! dark:text-amber-400!;
+}
+
+table.api-table--pipe tbody td:first-child code {
+  @apply border-purple-500/20! bg-purple-500/10! text-purple-600! dark:text-purple-400!;
+}
+
+.embla {
+  overflow: hidden;
+}
+
+.embla__container {
+  display: flex;
+  touch-action: pan-y pinch-zoom;
+}
+
+.embla__slide {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+.showcase-carousel .embla__slide {
+  flex: 0 0 312px;
+}
+@media (max-width: 1023px) {
+  .showcase-carousel .embla__slide {
+    flex: 0 0 calc(344px / 1.2);
+  }
+}

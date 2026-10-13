@@ -1,0 +1,33 @@
+{
+  "name": "Zard/ui",
+  "short_name": "Zard/ui",
+  "description": "Finally, a real @shadcn/ui alternative for Angular. Free and open-source UI components built with Angular, TypeScript, and Tailwind CSS.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "icons": [
+    {
+      "src": "./site/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg"
+    },
+    {
+      "src": "./site/icon-256x256.svg",
+      "sizes": "256x256",
+      "type": "image/svg"
+    },
+    {
+      "src": "./site/icon-384x384.svg",
+      "sizes": "384x384",
+      "type": "image/svg"
+    },
+    {
+      "src": "./site/icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg"
+    }
+  ],
+  "scope": "/",
+  "lang": "en"
+}

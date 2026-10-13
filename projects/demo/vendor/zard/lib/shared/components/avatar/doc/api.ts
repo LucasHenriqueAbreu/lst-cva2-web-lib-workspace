@@ -1,0 +1,76 @@
+import type { ApiSection } from '@doc/domain/components/api-reference/api-reference.types';
+
+export const AVATAR_API: ApiSection[] = [
+  {
+    selector: 'z-avatar',
+    description: 'An image element with a fallback for representing the user.',
+    props: [
+      { name: '[class]', description: 'Additional CSS classes', type: 'string', default: "''" },
+      { name: '[zAlt]', description: 'Image alt text for accessibility', type: 'string', default: "''" },
+      {
+        name: '[zFallback]',
+        description: 'Fallback text displayed while loading or on error',
+        type: 'string',
+        default: "''",
+      },
+      { name: '[zPriority]', description: 'Should image load with high priority', type: 'boolean', default: 'false' },
+      {
+        name: '[zSize]',
+        description: 'Avatar size variant',
+        type: "'sm' | 'default' | 'lg'",
+        default: "'default'",
+      },
+      { name: '[zSrc]', description: 'Image source URL', type: 'string | SafeUrl', default: "''" },
+      {
+        name: '[zShowBadge]',
+        description: 'Show avatar badge',
+        type: 'boolean',
+        default: 'false',
+      },
+      {
+        name: '[zBadgeClass]',
+        description: 'Additional avatar badge classes',
+        type: 'ClassValue',
+        default: "''",
+      },
+      {
+        name: '[zBadgeIcon]',
+        description: 'Avatar badge icon',
+        type: 'string',
+        default: "''",
+      },
+    ],
+  },
+  {
+    selector: 'z-avatar-group',
+    description: 'A group container for displaying multiple avatars.',
+    props: [
+      {
+        name: '[zOrientation]',
+        description: 'Layout direction of avatars',
+        type: "'horizontal' | 'vertical'",
+        default: "'horizontal'",
+      },
+      { name: '[class]', description: 'Additional CSS classes', type: 'string', default: "''" },
+    ],
+  },
+  {
+    selector: 'z-avatar-group-count',
+    description: 'A "+N" chip for the members a `z-avatar-group` stack does not show.',
+    props: [
+      {
+        name: '[zCount]',
+        description: 'Number of additional members represented by the chip',
+        type: 'number',
+        default: '0',
+      },
+      {
+        name: '[zSize]',
+        description: 'Chip size variant, matching the sibling avatars',
+        type: "'sm' | 'default' | 'lg'",
+        default: "'default'",
+      },
+      { name: '[class]', description: 'Additional CSS classes', type: 'string', default: "''" },
+    ],
+  },
+];

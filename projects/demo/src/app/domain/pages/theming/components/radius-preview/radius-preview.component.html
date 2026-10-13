@@ -1,0 +1,47 @@
+<div class="flex flex-col gap-4">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="text-muted-foreground text-sm">
+      <code>--radius</code>
+      :
+    </span>
+    <div role="group" aria-label="Radius value" class="flex flex-wrap gap-1">
+      @for (preset of presets; track preset) {
+        <button
+          type="button"
+          [attr.aria-pressed]="radius() === preset"
+          [class]="
+            'focus-visible:border-ring focus-visible:ring-ring/50 rounded-md border px-2.5 py-1 font-mono text-xs transition-colors focus-visible:ring-3 motion-reduce:transition-none ' +
+            (radius() === preset ? 'bg-accent text-accent-foreground border-ring' : 'hover:bg-muted')
+          "
+          (click)="setRadius(preset)"
+        >
+          {{ preset }}
+        </button>
+      }
+    </div>
+    <button z-button type="button" zType="outline" zSize="sm" (click)="copyRadius()">Copy declaration</button>
+  </div>
+
+  <!-- Only --radius is overridden here; the four steps below are derived by @theme inline. -->
+  <div class="border-border rounded-lg border p-4 sm:p-6" [style]="scopedStyles()">
+    <!--
+      Swatch and label together, instead of four unlabelled squares above a
+      separate table: the table forced a 768px minimum for four short rows, and
+      nothing connected a square to the utility that produced it.
+    -->
+    <ul class="grid gap-4 sm:grid-cols-2">
+      @for (step of steps(); track step.utility) {
+        <li class="flex flex-col gap-2.5">
+          <!-- A band rather than a small square: it shows all four corners at
+               once, which is what the eye is comparing between steps. -->
+          <span [class]="'bg-primary block h-14 w-full ' + step.utility"></span>
+          <span class="flex items-baseline justify-between gap-3">
+            <code class="text-xs font-medium">{{ step.utility }}</code>
+            <span class="text-muted-foreground text-xs tabular-nums">{{ step.resolved }}</span>
+          </span>
+          <code class="text-muted-foreground/80 text-[11px] break-words">{{ step.formula }}</code>
+        </li>
+      }
+    </ul>
+  </div>
+</div>

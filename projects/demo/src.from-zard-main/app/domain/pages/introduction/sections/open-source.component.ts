@@ -1,0 +1,123 @@
+import { Component } from '@angular/core';
+
+import { IconName, NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideBan, lucideCircleCheck, lucideCircleDollarSign, lucideX, lucideZap } from '@ng-icons/lucide';
+
+import { ZardBadgeComponent } from '@zard/components/badge/badge.component';
+import { ZardCardImports } from '@zard/components/card/card.imports';
+
+interface OpenSourceFeature {
+  title: string;
+  description: string;
+  icon: IconName;
+}
+
+interface StandAgainstItem {
+  title: string;
+  description: string;
+}
+
+@Component({
+  selector: 'z-introduction-open-source-section',
+  imports: [ZardBadgeComponent, ZardCardImports, NgIcon],
+  template: `
+    <section class="flex flex-col gap-8">
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col-reverse items-start gap-3 md:flex-row md:items-center">
+          <h2 class="font-heading mt-10 text-xl font-medium tracking-tight first:mt-0 lg:mt-12">
+            Open Source Philosophy
+          </h2>
+          <z-badge class="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">100% Free</z-badge>
+        </div>
+        <p class="text-foreground text-base leading-7">
+          Built by the community, for the community. No corporate overlords, no paywalls, no compromises.
+        </p>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        @for (feature of features; track $index) {
+          <z-card>
+            <z-card-header>
+              <z-card-title [zTitle]="title" />
+            </z-card-header>
+            <ng-template #title>
+              <div
+                class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+              >
+                <ng-icon [name]="feature.icon" class="text-lg font-normal" />
+              </div>
+              <h3 class="mt-4 text-base font-semibold">{{ feature.title }}</h3>
+            </ng-template>
+            <p z-card-content class="text-muted-foreground text-sm">{{ feature.description }}</p>
+          </z-card>
+        }
+      </div>
+
+      <!-- What We Stand Against -->
+      <div class="bg-destructive/5 rounded-lg p-6">
+        <h3 class="mb-4 flex items-center gap-2 text-lg font-semibold">
+          <ng-icon name="lucideBan" class="text-destructive" />
+          What We Stand Against
+        </h3>
+        <div class="grid gap-3 md:grid-cols-3">
+          @for (item of standAgainstItems; track $index) {
+            <div class="flex items-start gap-3">
+              <span>
+                <ng-icon name="lucideX" class="text-destructive" />
+              </span>
+              <div>
+                <p class="text-sm font-medium">{{ item.title }}</p>
+                <p class="text-muted-foreground text-xs">{{ item.description }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  `,
+  viewProviders: [
+    provideIcons({
+      lucideCircleCheck,
+      lucideCircleDollarSign,
+      lucideZap,
+      lucideBan,
+      lucideX,
+    }),
+  ],
+})
+export class IntroductionOpenSourceSectionComponent {
+  readonly features: OpenSourceFeature[] = [
+    {
+      title: 'Community Owned',
+      description:
+        "Governed by developers, not corporations. Every decision is made transparently with the community's best interests at heart.",
+      icon: 'lucideCircleCheck',
+    },
+    {
+      title: 'Forever Free',
+      description: 'Every component, every feature, always free. No premium tiers, no hidden costs, no "pro" versions.',
+      icon: 'lucideCircleDollarSign',
+    },
+    {
+      title: 'Built in Public',
+      description:
+        'All development happens in the open. Watch us build, contribute your ideas, and shape the future together.',
+      icon: 'lucideZap',
+    },
+  ];
+
+  readonly standAgainstItems: StandAgainstItem[] = [
+    {
+      title: 'Corporate Control',
+      description: 'No single entity will ever own or control ZardUI',
+    },
+    {
+      title: 'Vendor Lock-in',
+      description: 'Your code is yours, take it wherever you need',
+    },
+    {
+      title: 'Artificial Limitations',
+      description: 'No paywalls or "premium" features',
+    },
+  ];
+}

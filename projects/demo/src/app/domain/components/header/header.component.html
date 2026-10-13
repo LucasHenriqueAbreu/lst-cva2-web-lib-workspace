@@ -1,0 +1,41 @@
+<header class="bg-background sticky top-0 z-50 w-full">
+  <nav class="container-wrapper 3xl:fixed:px-0 px-6">
+    <menu class="3xl:fixed:container flex h-(--header-height) items-center gap-2">
+      <a class="hidden items-center gap-3 lg:flex" routerLink="/">
+        <img src="/images/zard.svg" alt="logo" class="h-6 dark:invert" />
+      </a>
+      <div class="flex lg:hidden">
+        <z-mobile-nav />
+      </div>
+      <nav class="hidden flex-1 items-center gap-0 lg:flex">
+        @for (path of headerPaths; track path.path) {
+          <a z-button zType="ghost" [routerLink]="path.path">
+            {{ path.name }}
+            @if (!path.available) {
+              <z-badge class="px-1 py-0">soon</z-badge>
+            }
+          </a>
+        }
+      </nav>
+
+      <aside class="ml-auto flex items-center gap-2 md:flex-1 md:justify-end">
+        <div class="hidden w-full flex-1 md:flex md:w-auto md:flex-none">
+          <z-doc-researcher #docResearcher />
+        </div>
+
+        <z-separator zOrientation="vertical" class="ml-2 hidden h-4! self-center! lg:block" />
+        @if (githubData) {
+          <a z-button class="flex" zType="ghost" [href]="githubData.url" target="_blank">
+            <img [src]="githubData.icon" [alt]="githubData.iconAlt" class="h-4 dark:invert" />
+            <span class="text-muted-foreground text-xs tabular-nums">{{ repoStars() }}</span>
+          </a>
+        }
+        <z-separator zOrientation="vertical" class="3xl:block hidden h-4! self-center!" />
+        <button z-button zType="ghost" zSize="icon" (click)="toggleTheme()">
+          <ng-icon name="darkMode" class="size-4.5!" />
+          <span class="sr-only">Toggle theme</span>
+        </button>
+      </aside>
+    </menu>
+  </nav>
+</header>

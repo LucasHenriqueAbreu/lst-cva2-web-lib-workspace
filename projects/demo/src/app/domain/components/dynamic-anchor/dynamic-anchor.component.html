@@ -1,0 +1,39 @@
+<section
+  class="sticky top-[calc(var(--header-height)+1px)] z-30 ml-auto hidden h-[90svh] w-(--sidebar-width) flex-col gap-4 overflow-hidden overscroll-none pb-8 xl:flex"
+>
+  <div class="h-(--top-spacing) shrink-0"></div>
+  <aside class="no-scrollbar hidden flex-col gap-6 overflow-y-auto px-8 xl:flex">
+    <p class="bg-background text-muted-foreground sticky top-0 text-xs font-medium">On this page</p>
+    <ul class="flex flex-col gap-2 p-4 pt-0 text-sm">
+      @for (item of navigation().items; track item.id) {
+        <li>
+          <a
+            [class]="
+              'text-muted-foreground hover:text-foreground cursor-pointer text-[0.8rem] no-underline transition-colors ' +
+              (activeAnchor() === item.id ? 'text-foreground! font-medium' : '')
+            "
+            (click)="scrollToAnchor(item.id)"
+          >
+            {{ item.label | hyphenToSpace }}
+          </a>
+
+          @if (item.children?.length) {
+            @for (child of item.children; track child.id) {
+              <div class="mt-1 ml-4">
+                <a
+                  [class]="
+                    'text-muted-foreground hover:text-foreground cursor-pointer text-[0.8rem] no-underline transition-colors ' +
+                    (activeAnchor() === child.id ? 'text-foreground! font-medium' : '')
+                  "
+                  (click)="scrollToAnchor(child.id)"
+                >
+                  {{ child.label | hyphenToSpace | titlecase }}
+                </a>
+              </div>
+            }
+          }
+        </li>
+      }
+    </ul>
+  </aside>
+</section>

@@ -1,0 +1,73 @@
+import { Clipboard } from '@angular/cdk/clipboard';
+import { Component, input, inject, computed, ChangeDetectionStrategy } from '@angular/core';
+
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideCheck, lucideClipboard } from '@ng-icons/lucide';
+import { toast } from 'ngx-sonner';
+
+import { Color } from '@doc/shared/constants/colors.constant';
+import { ColorsService, ColorFormat } from '@doc/shared/services/colors.service';
+
+@Component({
+  selector: 'button[z-color-card]',
+  imports: [NgIcon],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './color-card.component.html',
+  host: {
+    type: 'button',
+    '[class]': 'hostClasses()',
+    '[attr.data-last-copied]': 'isCopied()',
+    '[style.--bg]': 'color().oklch',
+    '[style.--text]': 'color().foreground',
+    '(click)': 'copyToClipboard()',
+  },
+  viewProviders: [provideIcons({ lucideCheck, lucideClipboard })],
+})
+export class ColorCardComponent {
+  private readonly clipboard = inject(Clipboard);
+  private readonly colorsService = inject(ColorsService);
+
+  readonly color = input.required<Color>();
+  readonly format = input.required<ColorFormat>();
+
+  readonly isCopied = computed(() => this.colorsService.lastCopied() === this.formattedValue());
+
+  readonly hostClasses = computed(
+    () =>
+      'group relative flex flex-1 flex-col gap-2 cursor-pointer aspect-[3/1] sm:aspect-[2/3] sm:h-auto sm:w-auto text-(--text) w-full',
+  );
+
+  readonly formattedValue = computed(() => {
+    const color = this.color();
+    const format = this.format();
+
+    switch (format) {
+      case 'class':
+        return color.className;
+      case 'hex':
+        return color.hex;
+      case 'rgb':
+        return color.rgb;
+      case 'hsl':
+        return color.hsl;
+      case 'oklch':
+        return color.oklch;
+      case 'var':
+        return color.var;
+      default:
+        return color.hsl;
+    }
+  });
+
+  copyToClipboard(): void {
+    const value = this.formattedValue();
+    const success = this.clipboard.copy(value);
+
+    if (success) {
+      this.colorsService.setLastCopied(value);
+      toast.success(`Copied ${value} to clipboard.`);
+    } else {
+      toast.error('Failed to copy to clipboard');
+    }
+  }
+}

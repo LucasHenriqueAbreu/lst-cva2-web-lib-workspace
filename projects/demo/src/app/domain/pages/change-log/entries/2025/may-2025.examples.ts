@@ -1,0 +1,65 @@
+import { CHECKBOX_DEMO_PREVIEW } from '@generated/components/checkbox/demo/preview';
+import { RADIO_GROUP_DEMO_PREVIEW } from '@generated/components/radio-group/demo/preview';
+import { SELECT_DEMO_PREVIEW } from '@generated/components/select/demo/preview';
+import { SLIDER_DEMO_PREVIEW } from '@generated/components/slider/demo/preview';
+import { SWITCH_DEMO_PREVIEW } from '@generated/components/switch/demo/preview';
+import { CHECKBOX_CLI_ADD } from '@generated/installation/cli/add-checkbox';
+import { RADIO_GROUP_CLI_ADD } from '@generated/installation/cli/add-radio-group';
+import { SELECT_CLI_ADD } from '@generated/installation/cli/add-select';
+import { SLIDER_CLI_ADD } from '@generated/installation/cli/add-slider';
+import { SWITCH_CLI_ADD } from '@generated/installation/cli/add-switch';
+
+import { ZardDemoCheckboxPreviewComponent } from '@zard/components/checkbox/demo/preview';
+import { ZardDemoRadioGroupPreviewComponent } from '@zard/components/radio-group/demo/preview';
+import { ZardDemoSelectPreviewComponent } from '@zard/components/select/demo/preview';
+import { ZardDemoSliderPreviewComponent } from '@zard/components/slider/demo/preview';
+import { ZardDemoSwitchPreviewComponent } from '@zard/components/switch/demo/preview';
+
+import { type ChangelogExample } from '../changelog-entry.interface';
+
+export const MAY_2025_EXAMPLES: ChangelogExample[] = [
+  {
+    name: 'default',
+    description:
+      'Dropdown select with grouped options, multi-select support, keyboard navigation, and custom item rendering.',
+    component: ZardDemoSelectPreviewComponent,
+    componentName: 'select',
+    codeData: SELECT_DEMO_PREVIEW,
+    cliAdd: SELECT_CLI_ADD,
+  },
+  {
+    name: 'default',
+    description: 'Checkbox input component with indeterminate state support and full accessibility features.',
+    component: ZardDemoCheckboxPreviewComponent,
+    componentName: 'checkbox',
+    codeData: CHECKBOX_DEMO_PREVIEW,
+    cliAdd: CHECKBOX_CLI_ADD,
+  },
+  {
+    name: 'default',
+    description: 'Radio button group for mutually exclusive options with customizable layouts and orientation.',
+    component: ZardDemoRadioGroupPreviewComponent,
+    componentName: 'radio-group',
+    codeData: RADIO_GROUP_DEMO_PREVIEW,
+    cliAdd: RADIO_GROUP_CLI_ADD,
+  },
+  {
+    name: 'default',
+    description: 'Toggle switch component for boolean settings with smooth animation transitions.',
+    component: ZardDemoSwitchPreviewComponent,
+    componentName: 'switch',
+    codeData: SWITCH_DEMO_PREVIEW,
+    cliAdd: SWITCH_CLI_ADD,
+  },
+  {
+    name: 'default',
+    description: 'Range slider for numeric value selection with min/max bounds, step support, and value display.',
+    component: ZardDemoSliderPreviewComponent,
+    componentName: 'slider',
+    codeData: SLIDER_DEMO_PREVIEW,
+    cliAdd: SLIDER_CLI_ADD,
+    // The slider takes its width from its parent, so it needs the preview area
+    // to stretch it; without this it renders zero pixels wide.
+    fillContainer: true,
+  },
+];
